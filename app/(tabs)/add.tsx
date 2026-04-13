@@ -119,25 +119,38 @@ export default function AddExpense() {
           </View>
 
           <View style={styles.formSection}>
-            <Text style={[styles.label, { color: colors.text }]}>Payment Method</Text>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.label, { color: colors.text }]}>Payment Method</Text>
+            </View>
             {renderPaymentMethodPills()}
 
             <View style={styles.spacer} />
 
-            <Card style={{ backgroundColor: colors.surface }}>
+            <Card style={{ backgroundColor: colors.surface, padding: 20, borderRadius: 24 }}>
+              <View style={styles.inputHeaderRow}>
+                <Text style={[styles.inputLabel, { color: colors.textMuted }]}>Date of Spend</Text>
+                <TouchableOpacity 
+                   onPress={() => setDate(new Date().toISOString().split('T')[0])}
+                   style={[styles.todayBadge, { backgroundColor: colors.primary + '10' }]}
+                >
+                  <Text style={[styles.todayText, { color: colors.primary }]}>Today</Text>
+                </TouchableOpacity>
+              </View>
               <Input
-                label="Date"
-                icon={<CalendarIcon color={colors.textMuted} size={20} />}
+                icon={<CalendarIcon color={colors.primary} size={18} />}
                 value={date}
                 onChangeText={setDate}
                 placeholder="YYYY-MM-DD"
+                containerStyle={{ marginBottom: 20 }}
               />
+              
+              <Text style={[styles.inputLabel, { color: colors.textMuted, marginBottom: 8 }]}>Reason / Note</Text>
               <Input
-                label="Reason / Note"
-                icon={<FileText color={colors.textMuted} size={20} />}
+                icon={<FileText color={colors.primary} size={18} />}
                 value={note}
                 onChangeText={setNote}
                 placeholder="What exactly did you spend on?"
+                containerStyle={{ marginBottom: 0 }}
               />
             </Card>
           </View>
@@ -205,10 +218,36 @@ const styles = StyleSheet.create({
   formSection: {
     paddingHorizontal: theme.spacing.lg,
   },
-  label: {
-    ...theme.typography.h3,
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: theme.spacing.md,
+  },
+  label: {
     fontSize: 16,
+    fontWeight: '700',
+  },
+  inputHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  inputLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  todayBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  todayText: {
+    fontSize: 12,
+    fontWeight: '700',
   },
   methodScroll: {
     marginLeft: -theme.spacing.lg,

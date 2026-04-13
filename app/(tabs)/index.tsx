@@ -56,8 +56,20 @@ export default function Dashboard() {
         contentContainerStyle={styles.scrollContent}
       >
         <View style={styles.header}>
-          <Text style={[styles.greeting, { color: colors.text }]}>Hello, {displayGreeting}</Text>
-          <Text style={[styles.subtitle, { color: colors.textMuted }]}>Master your finances today</Text>
+          <View style={styles.headerTop}>
+            <View>
+              <Text style={[styles.greeting, { color: colors.text }]}>Hello, {displayGreeting}</Text>
+              <Text style={[styles.subtitle, { color: colors.textMuted }]}>Master your finances today</Text>
+            </View>
+            <TouchableOpacity 
+              style={[styles.avatar, { backgroundColor: colors.primary + '15' }]}
+              onPress={() => router.push('/profile')}
+            >
+              <Text style={[styles.avatarText, { color: colors.primary }]}>
+                {displayGreeting.charAt(0).toUpperCase()}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.summarySection}>
@@ -141,16 +153,39 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: theme.spacing.lg,
-    paddingTop: 60, // Lowered greeting
-    paddingBottom: theme.spacing.md,
+    paddingTop: 80, // Lowered greeting
+    paddingBottom: theme.spacing.xl,
+  },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   greeting: {
     ...theme.typography.h1,
     fontSize: 28,
+    fontWeight: '800',
+    letterSpacing: -0.5,
   },
   subtitle: {
     ...theme.typography.body,
+    fontSize: 14,
+    fontWeight: '500',
+    marginTop: 2,
     opacity: 0.6,
+  },
+  avatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.05)',
+  },
+  avatarText: {
+    fontSize: 18,
+    fontWeight: '700',
   },
   summarySection: {
     paddingHorizontal: theme.spacing.lg,

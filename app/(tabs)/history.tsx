@@ -37,10 +37,12 @@ export default function HistoryScreen() {
     }
 
     if (searchQuery) {
+      const q = searchQuery.toLowerCase();
       result = result.filter(e => 
-        (e.note || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-        e.payment_method.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        e.amount.toString().includes(searchQuery)
+        (e.note || '').toLowerCase().includes(q) ||
+        (e.payment_method || '').toLowerCase().includes(q) ||
+        e.amount.toString().includes(q) ||
+        format(parseISO(e.date), 'MMM do yyyy').toLowerCase().includes(q)
       );
     }
 
@@ -48,8 +50,9 @@ export default function HistoryScreen() {
   }, [expenses, activeFilter, selectedDate, searchQuery]);
 
   const handleDateSelect = (dateStr: string) => {
+    // Basic auto-correction or helper can be added here
     setSelectedDate(dateStr);
-    setActiveFilter('Specific');
+    if (dateStr.length >= 10) setActiveFilter('Specific');
   };
 
   const clearDateFilter = () => {
@@ -63,9 +66,12 @@ export default function HistoryScreen() {
     <ScreenWrapper>
       <View style={styles.header}>
         <View style={styles.titleRow}>
-          <Text style={[styles.title, { color: colors.text }]}>Transaction History</Text>
+          <Text style={[styles.title, { color: colors.text }]}>Transactions</Text>
           <TouchableOpacity 
-            onPress={() => setIsSearching(!isSearching)}
+            onPress={() => {
+              setIsSearching(!isSearching);
+              if (isSearching) setSearchQuery('');
+            }}
             style={[styles.iconButton, { backgroundColor: colors.surfaceLight }]}
           >
             {isSearching ? <X size={20} color={colors.text} /> : <Search size={20} color={colors.text} />}
@@ -74,10 +80,10 @@ export default function HistoryScreen() {
 
         {isSearching && (
           <View style={[styles.searchBar, { backgroundColor: colors.surfaceLight }]}>
-            <Search size={18} color={colors.textMuted} />
+            <Search size={18} color={colors.primary} />
             <TextInput
               style={[styles.searchInput, { color: colors.text }]}
-              placeholder="Search reason, method or amount..."
+              placeholder="Search note, date, or amount..."
               placeholderTextColor={colors.textMuted}
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -106,41 +112,48 @@ export default function HistoryScreen() {
               </TouchableOpacity>
             ))}
             
-            <TouchableOpacity
-              onPress={() => {/* In a real app, open native date picker */}}
+            <View
               style={[
                 styles.tab,
                 styles.calendarTab,
-                activeFilter === 'Specific' && { backgroundColor: colors.primary, borderColor: colors.primary }
+                { backgroundColor: activeFilter === 'Specific' ? colors.primary : colors.surfaceLight }
               ]}
             >
               <CalendarIcon size={16} color={activeFilter === 'Specific' ? '#FFFFFF' : colors.textMuted} />
               <TextInput
-                placeholder="Pick Date"
+                placeholder="YYYY-MM-DD"
                 placeholderTextColor={colors.textMuted}
                 value={selectedDate}
                 onChangeText={handleDateSelect}
                 style={[styles.dateInput, { color: activeFilter === 'Specific' ? '#FFFFFF' : colors.text }]}
+                keyboardType="numeric"
+                maxLength={10}
               />
               {selectedDate ? (
-                <TouchableOpacity onPress={clearDateFilter}>
+                <TouchableOpacity onPress={clearDateFilter} style={styles.clearDateBtn}>
                   <X size={14} color={activeFilter === 'Specific' ? '#FFFFFF' : colors.textMuted} />
                 </TouchableOpacity>
               ) : null}
-            </TouchableOpacity>
+            </View>
           </ScrollView>
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={styles.listContent}>
+      <ScrollView contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false}>
         {filteredExpenses.length > 0 ? (
           filteredExpenses.map((item) => (
             <ExpenseItem key={item.id} expense={item} />
           ))
         ) : (
           <View style={styles.emptyContainer}>
+            <View style={[styles.emptyIconContainer, { backgroundColor: colors.surfaceLight }]}>
+              <Search size={40} color={colors.textMuted} />
+            </View>
+            <Text style={[styles.emptyTitle, { color: colors.text }]}>No Results Found</Text>
             <Text style={[styles.emptyText, { color: colors.textMuted }]}>
-              {searchQuery ? 'No transactions match your search.' : 'No transactions found for this period.'}
+              {searchQuery 
+                ? `We couldn't find anything matching "${searchQuery}"`
+                : "No transactions recorded for this period."}
             </Text>
           </View>
         )}
@@ -218,6 +231,10 @@ const styles = StyleSheet.create({
     padding: 0,
     minWidth: 70,
   },
+  clearDateBtn: {
+    padding: 4,
+    marginLeft: 4,
+  },
   listContent: {
     paddingTop: 10,
     paddingBottom: 100,
@@ -225,12 +242,27 @@ const styles = StyleSheet.create({
   emptyContainer: {
     flex: 1,
     alignItems: 'center',
-    paddingTop: 100,
+    justifyContent: 'center',
+    paddingTop: 60,
     paddingHorizontal: 40,
+  },
+  emptyIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 8,
   },
   emptyText: {
     ...theme.typography.body,
     textAlign: 'center',
     opacity: 0.6,
+    lineHeight: 20,
   },
 });

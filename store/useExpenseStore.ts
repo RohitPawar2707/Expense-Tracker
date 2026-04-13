@@ -138,10 +138,19 @@ export const useExpenseStore = create<ExpenseState>()(
         for (const op of syncQueue) {
           try {
             if (op.action === 'INSERT' && op.recordData) {
-              const { error } = await supabase.from(op.tableName).insert(op.recordData as any);
+              // Compatibility: Send both payment_method and category to satisfy old DB schemas
+              const payload = { 
+                ...op.recordData, 
+                category: (op.recordData as any).payment_method || 'Cash' 
+              };
+              const { error } = await supabase.from(op.tableName).insert(payload as any);
               if (error) throw error;
             } else if (op.action === 'UPDATE' && op.recordData) {
-              const { error } = await supabase.from(op.tableName).update(op.recordData as any).eq('id', op.recordId);
+              const payload = { 
+                ...op.recordData, 
+                category: (op.recordData as any).payment_method
+              };
+              const { error } = await supabase.from(op.tableName).update(payload as any).eq('id', op.recordId);
               if (error) throw error;
             } else if (op.action === 'DELETE') {
               const { error } = await supabase.from(op.tableName).delete().eq('id', op.recordId);
@@ -175,11 +184,14 @@ export const useExpenseStore = create<ExpenseState>()(
           if (error) throw error;
           
           if (data) {
-             // Basic merge mechanism: replace local expenses with server data.
-             // (In a full app, you'd reconcile local unsynced edits with server data)
-             // Best to wait if there is a pending syncQueue
+             const mappedExpenses = (data as any[]).map(e => ({
+               ...e,
+               // Compatibility: Map 'category' back to 'payment_method' if missing from server
+               payment_method: e.payment_method || e.category || 'Cash'
+             }));
+             
              if (get().syncQueue.length === 0) {
-               set({ expenses: data as Expense[] });
+               set({ expenses: mappedExpenses as Expense[] });
              }
           }
         } catch (e) {
